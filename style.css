@@ -182,6 +182,56 @@ ul {
     text-shadow: var(--neon-glow);
 }
 
+/* Promo Section */
+.promo-section {
+    padding: 60px 0;
+    background: var(--bg-color);
+    overflow: hidden;
+}
+
+.promo-ticker {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px 0;
+    margin-bottom: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+}
+
+.promo-ticker-inner {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 40s linear infinite;
+}
+
+.promo-ticker-inner span {
+    color: #00ff00; /* Bright Green */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1.8rem;
+    letter-spacing: 4px;
+    padding-right: 20px;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.promo-description {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
 /* Services */
 .services-list {
     display: flex;
@@ -340,10 +390,21 @@ ul {
     .header-inner {
         flex-direction: column;
         justify-content: center;
-        gap: 10px;
+        height: auto;
+        padding: 15px 0;
+        gap: 12px;
+    }
+    .logo {
+        font-size: 1.3rem;
     }
     .nav {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: center;
+        gap: 15px;
+        width: 100%;
+    }
+    .nav a {
+        font-size: 0.8rem;
+        letter-spacing: 0;
     }
 }

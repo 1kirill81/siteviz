@@ -24,6 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
             name: "Комплекс 'Идеальные брови'",
             description: "Архитектура + ДУ + Окрашивание + SPA-уход",
             price: "3000 ₽"
+        },
+        {
+            id: 5,
+            name: "Алоха'",
+            description: "Алоха описание",
+            price: "3000 ₽"
+        },
+        {
+            id: 6,
+            name: "Реальная фотка",
+            description: "описание",
+            price: "3000 ₽"
         }
     ];
 
@@ -59,6 +71,18 @@ document.addEventListener("DOMContentLoaded", () => {
             imageUrl: "examples/maxresdefault.jpg",
             title: "Идеальные брови",
             description: "Гармоничная форма и стойкий результат."
+        },
+        {
+            id: 6,
+            imageUrl: "examples/test.jpg",
+            title: "Котик жостко качается",
+            description: "Да да, реально качается"
+        },
+        {
+            id: 7,
+            imageUrl: "examples/test1.jpg",
+            title: "Реальная фотка",
+            description: "Дададада"
         }
     ];
 
@@ -94,7 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
             galleryEl.innerHTML = `
                 <img src="${item.imageUrl}" alt="${item.title}" loading="lazy">
                 <div class="gallery-overlay">
-                    <span class="service-name">${item.title}</span>
+                    <div class="service-name">${item.title}</div>
+                    <div class="service-desc">${item.description}</div>
                 </div>
             `;
             galleryContainer.appendChild(galleryEl);
