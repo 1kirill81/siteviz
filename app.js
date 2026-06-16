@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
 /* --- Supernatural Easter Egg --- */
 (function() {
     const impalaImgUrl = 'car.png'; 
-    const duration = 2000; // СКОРОСТЬ: 4000 мс = 4 секунды. Меньше число — быстрее проедет.
+    const duration = 2000; 
 
     const style = document.createElement('style');
     style.textContent = `
@@ -380,11 +380,22 @@ document.addEventListener("DOMContentLoaded", () => {
             transition: transform ${duration}ms linear;
             will-change: transform;
         }
+        @media (max-width: 600px) {
+            .impala-easter-egg {
+                width: 200px;
+                bottom: 8vh;
+                left: -250px;
+            }
+        }
     `;
     document.head.appendChild(style);
 
-    // Функция запуска
+    let isLaunching = false;
+
     function launchImpala() {
+        if (isLaunching) return;
+        isLaunching = true;
+
         const car = document.createElement('img');
         car.src = impalaImgUrl;
         car.className = 'impala-easter-egg';
@@ -393,32 +404,34 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(car);
 
         requestAnimationFrame(() => {
-            const distance = window.innerWidth + 900;
+            const carWidth = car.offsetWidth || 350;
+            const distance = window.innerWidth + carWidth + 200;
             car.style.transform = `translateX(${distance}px)`;
         });
 
         setTimeout(() => {
             car.remove();
+            isLaunching = false;
         }, duration + 500);
     }
 
-    // 2. Обработчик клика на фото мастера
-    document.addEventListener('click', (event) => {
+    // Используем делегирование, но с проверкой типа события для мобилок
+    const handleTrigger = (event) => {
         const flipContainer = event.target.closest('.photo-flip-container');
         if (flipContainer) {
             launchImpala();
             
-            // Если фото еще не перевернуто, переворачиваем
             if (!flipContainer.classList.contains('flipped')) {
                 flipContainer.classList.add('flipped');
-                
-                // Через 4 секунды (когда машина уедет) переворачиваем обратно
                 setTimeout(() => {
                     flipContainer.classList.remove('flipped');
                 }, 1000);
             }
         }
-    });
+    };
+
+    // Слушаем pointerdown — это работает и для клика, и для тача максимально быстро
+    document.addEventListener('pointerdown', handleTrigger);
 })();
 
 
