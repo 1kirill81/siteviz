@@ -403,10 +403,15 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.body.appendChild(car);
 
+        // Первый кадр: даем браузеру отрисовать элемент в начальной точке
         requestAnimationFrame(() => {
             const carWidth = car.offsetWidth || 350;
             const distance = window.innerWidth + carWidth + 200;
-            car.style.transform = `translateX(${distance}px)`;
+            
+            // Второй кадр: запускаем CSS-переход со смещением
+            requestAnimationFrame(() => {
+                car.style.transform = `translateX(${distance}px)`;
+            });
         });
 
         setTimeout(() => {

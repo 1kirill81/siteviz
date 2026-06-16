@@ -148,7 +148,9 @@ ul {
     max-width: 350px;
     aspect-ratio: 3 / 4;
     perspective: 1000px;
+    -webkit-perspective: 1000px;
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 .photo-flip-inner {
@@ -157,6 +159,7 @@ ul {
     height: 100%;
     text-align: center;
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-transform-style: preserve-3d;
     transform-style: preserve-3d;
     box-shadow: var(--neon-glow);
     border-radius: 10px;
@@ -176,8 +179,15 @@ ul {
     overflow: hidden;
 }
 
+.photo-front {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    z-index: 2;
+}
+
 .photo-back {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
 }
 
 .master-photo, .master-photo-back {
