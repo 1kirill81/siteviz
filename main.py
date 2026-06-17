@@ -34,6 +34,8 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 # Читаем ID и превращаем в список (поддерживаем один ID или несколько через запятую)
 raw_chat_ids = os.getenv("TELEGRAM_CHAT_ID", "")
 AUTHORIZED_IDS = [id.strip() for id in raw_chat_ids.split(",") if id.strip()]
+# Для отправки уведомлений о заказах используем ПЕРВЫЙ ID из списка
+TELEGRAM_CHAT_ID = AUTHORIZED_IDS[0] if AUTHORIZED_IDS else None
 GOOGLE_SCRIPT_URL = os.getenv("GOOGLE_SCRIPT_URL")
 
 # --- ССЫЛКИ ДЛЯ МЕНЮ (Вставьте свои) ---
@@ -83,9 +85,8 @@ async def telegram_polling():
                         chat_id = message["chat"]["id"]
                         
                         if text == "/menu":
-                            # Проверка авторизации (проверяем наличие в списке)
+                            # Проверка авторизации (просто игнорируем, если нет в списке)
                             if str(chat_id) not in AUTHORIZED_IDS:
-                                send_telegram_message(chat_id, "❌ <b>Доступ запрещен.</b>\nВы не авторизованы для использования этой команды.")
                                 continue
 
                             clients = get_recent_clients()
