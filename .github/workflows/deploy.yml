@@ -1,0 +1,38 @@
+name: Safe Production Deploy
+
+on:
+  push:
+    branches:
+      - main # Срабатывает только при пуше в main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploying via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }} # Использует кастомный порт или 22 по умолчанию
+          script: |
+            # 1. Переходим в папку проекта (ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ПУТЬ)
+            cd /var/www/siteviz
+            
+            # 2. Безопасно обновляем код
+            # Сбрасываем только отслеживаемые файлы до состояния в Git, не трогая .env
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # 3. Бесшовный перезапуск Docker
+            # Флаг --build заставит Docker собрать новый образ бэкенда
+            # Docker сначала соберет новый контейнер, и только в момент готовности подменит им старый
+            docker compose up -d --build
+            
+            # 4. Очистка старого мусора
+            # Удаляет кэш и старые неиспользуемые слои сборки, чтобы на сервере не кончалось место
+            docker system prune -f
+            
+            echo "✅ Деплой успешно завершен!"
