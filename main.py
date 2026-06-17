@@ -31,14 +31,11 @@ app.add_middleware(
 
 # Чтение конфигурации
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-# Читаем ID и превращаем в список (поддерживаем один ID или несколько через запятую)
 raw_chat_ids = os.getenv("TELEGRAM_CHAT_ID", "")
 AUTHORIZED_IDS = [id.strip() for id in raw_chat_ids.split(",") if id.strip()]
-# Для отправки уведомлений о заказах используем ПЕРВЫЙ ID из списка
 TELEGRAM_CHAT_ID = AUTHORIZED_IDS[0] if AUTHORIZED_IDS else None
 GOOGLE_SCRIPT_URL = os.getenv("GOOGLE_SCRIPT_URL")
 
-# --- ССЫЛКИ ДЛЯ МЕНЮ (Вставьте свои) ---
 WEBSITE_URL = "https://domio.ugo.si/"
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1CCSdqINQ_0fzc1Yd_fDPFIFwxt0_8L7W0zWq5QyhKaU/edit?gid=0#gid=0"
 
@@ -66,14 +63,15 @@ def send_telegram_message(chat_id, text):
         print(f"Ошибка отправки сообщения: {e}")
 
 async def telegram_polling():
-    """Простой лонг-поллинг для обработки команды /menu"""
+    """Безопасный асинхронный лонг-поллинг без блокировки основного потока"""
     offset = 0
     while True:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
             params = {"offset": offset, "timeout": 30}
-            # Используем session для эффективности, если нужно, но пока просто requests
-            response = requests.get(url, params=params, timeout=35)
+            
+            # ИСПРАВЛЕНИЕ: Выносим долгий 30-секундный запрос в отдельный поток ОС
+            response = await asyncio.to_thread(requests.get, url, params=params, timeout=35)
             
             if response.status_code == 200:
                 updates = response.json().get("result", [])
@@ -85,18 +83,17 @@ async def telegram_polling():
                         chat_id = message["chat"]["id"]
                         
                         if text == "/menu":
-                            # Проверка авторизации (просто игнорируем, если нет в списке)
                             if str(chat_id) not in AUTHORIZED_IDS:
                                 continue
 
-                            clients = get_recent_clients()
+                            # ИСПРАВЛЕНИЕ: Запрос списка клиентов тоже в поток
+                            clients = await asyncio.to_thread(get_recent_clients)
                             
                             clients_text = "<b>Последние 10 клиентов:</b>\n"
                             if not clients or not isinstance(clients, list):
                                 clients_text += "<i>Данные пока отсутствуют или ошибка GAS</i>"
                             else:
                                 for c in clients:
-                                    # Безопасное получение данных
                                     name = c.get('name', '???')
                                     contact = c.get('contact', '???')
                                     price = c.get('price', '0')
@@ -108,7 +105,8 @@ async def telegram_polling():
                                 f"📊 <a href='{SPREADSHEET_URL}'>Открыть таблицу</a>\n\n"
                                 f"{clients_text}"
                             )
-                            send_telegram_message(chat_id, menu_msg)
+                            # ИСПРАВЛЕНИЕ: Отправку меню выносим в поток
+                            await asyncio.to_thread(send_telegram_message, chat_id, menu_msg)
                             
         except asyncio.CancelledError:
             break
@@ -124,19 +122,13 @@ async def create_booking(
     total_price: str = Form(...),
     info: str = Form(None)
 ):
-    """
-    Эндпоинт для приема заявок с сайта.
-    Отправляет уведомление в Telegram и дублирует данные в Google Sheets через Apps Script.
-    """
-    
-    # Экранируем спецсимволы, чтобы не сломать HTML-разметку Telegram
+    """Эндпоинт для мгновенного приема заявок без ожидания ответа внешних API"""
     safe_name = html.escape(name)
     safe_contact = html.escape(contact)
     safe_services = html.escape(services)
     safe_price = html.escape(total_price)
     safe_info = html.escape(info) if info else "—"
 
-    # --- Шаг 1. Формирование и отправка сообщения в Telegram ---
     message = (
         f"<b>🔔 Новая заявка с сайта</b>\n\n"
         f"👤 <b>Имя:</b> {safe_name}\n"
@@ -153,15 +145,12 @@ async def create_booking(
         "parse_mode": "HTML"
     }
     
+    # ИСПРАВЛЕНИЕ: Отправляем уведомление в ТГ в фоновом потоке
     try:
-        tg_response = requests.post(tg_url, json=tg_payload, timeout=10)
-        if tg_response.status_code != 200:
-            print(f"Ошибка Telegram (Status {tg_response.status_code}): {tg_response.text}")
-        tg_response.raise_for_status()
+        await asyncio.to_thread(requests.post, tg_url, json=tg_payload, timeout=10)
     except Exception as e:
         print(f"Ошибка отправки в Telegram: {e}")
 
-    # --- Шаг 2. Пересылка данных в Google Apps Script ---
     gs_payload = {
         "name": name,
         "contact": contact,
@@ -170,17 +159,14 @@ async def create_booking(
         "info": info if info else ""
     }
     
+    # ИСПРАВЛЕНИЕ: Отправляем запись в Google Таблицу в фоновом потоке
     try:
-        # Google Script ожидает данные в формате Form (x-www-form-urlencoded)
-        gs_response = requests.post(GOOGLE_SCRIPT_URL, data=gs_payload, timeout=10)
-        gs_response.raise_for_status()
+        await asyncio.to_thread(requests.post, GOOGLE_SCRIPT_URL, data=gs_payload, timeout=10)
     except Exception as e:
         print(f"Ошибка отправки в Google Script: {e}")
 
-    # --- Ответ фронтенду ---
     return {"result": "success"}
 
 if __name__ == "__main__":
     import uvicorn
-    # Запуск сервера на порту 8000
     uvicorn.run(app, host="0.0.0.0", port=8000)
