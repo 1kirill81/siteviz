@@ -148,8 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const submitBtn = feedbackForm.querySelector('.submit-btn');
             const originalBtnText = submitBtn.textContent;
-            const backendUrl = 'http://localhost:8000/api/booking';
-            // const backendUrl = '/api/booking';
+            // const backendUrl = 'http://localhost:8000/api/booking';
+            const backendUrl = '/api/booking';
 
             // Проверка, выбрана ли хоть одна услуга
             const selectedServices = Array.from(checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'))
