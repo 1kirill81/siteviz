@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const submitBtn = feedbackForm.querySelector('.submit-btn');
             const originalBtnText = submitBtn.textContent;
-            const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbz-WkRugdFMAM7CX0ueSF-YdcDkIK4Vky36J0YEmzm-A8BvMr9OoNrjXQYogtOkKN8/exec';
+            const backendUrl = 'http://localhost:8000/api/booking';
 
             // Проверка, выбрана ли хоть одна услуга
             const selectedServices = Array.from(checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'))
@@ -170,9 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.set('services', selectedServices.join(', '));
             formData.set('total_price', totalPriceElement.textContent);
 
-            fetch(googleScriptUrl, {
+            fetch(backendUrl, {
                 method: 'POST',
-                mode: 'no-cors',
                 body: formData
             })
             .then(() => {
