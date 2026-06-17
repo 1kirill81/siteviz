@@ -316,8 +316,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Слушаем pointerdown — это работает и для клика, и для тача максимально быстро
-    document.addEventListener('pointerdown', handleTrigger);
+    // Слушаем click — это работает и для клика, и для тача максимально быстро
+    document.addEventListener('click', handleTrigger);
 })();
 
 
