@@ -36,13 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
             fullDescription: "Быстрое и бережное удаление пушковых и жестких волос на лице при помощи деликатного воска. Минимальное раздражение и гладкая кожа надолго.",
             price: "от 300 ₽"
         },
-        {
-            id: 6, 
-            name: "Test",
-            description: "Test desc",
-            fullDescription: "test ful",
-            price: "500 ₽"
-        }
 
     ];
 
