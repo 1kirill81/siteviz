@@ -1,44 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Имитация ответа API (JSON) для Прайса
-    const servicesData = [
-        {
-            id: 1,
-            name: "Архитектура и коррекция",
-            description: "Построение формы, коррекция пинцетом/воском",
-            fullDescription: "В услугу входит детальный разбор формы лица, подбор индивидуальной архитектуры бровей. Мы удаляем лишние волоски при помощи профессионального пинцета и гипоаллергенного воска, создавая четкие и чистые линии.",
-            price: "1000 ₽"
-        },
-        {
-            id: 2,
-            name: "Окрашивание (краска/хна)",
-            description: "Подбор оттенка с учетом цветотипа и структуры волоса",
-            fullDescription: "Используем только премиальные красители. Окрашивание позволяет сделать брови более выразительными, заполнить пустоты и добиться нужного оттенка, который будет гармонировать с вашим цветом волос.",
-            price: "1200 ₽"
-        },
-        {
-            id: 3,
-            name: "Долговременная укладка",
-            description: "Ламинирование, коррекция, уход",
-            fullDescription: "Идеальное решение для непослушных, жестких или растущих вниз волосков. Составы делают волос мягким и податливым, позволяя уложить брови в нужную форму. Эффект сохраняется до 6-8 недель.",
-            price: "2000 ₽"
-        },
-        {
-            id: 4,
-            name: "Комплекс 'Идеальные брови'",
-            description: "Архитектура + ДУ + Окрашивание + SPA-уход",
-            fullDescription: "Максимальное преображение вашего взгляда. Включает в себя все этапы: от создания формы до глубокого восстановления волосков специальными составами. Полный цикл ухода за один визит.",
-            price: "3000 ₽"
-        },
-        {
-            id: 5,
-            name: "Удаление нежелательных волос",
-            description: "Верхняя губа / подбородок / бакенбарды",
-            fullDescription: "Быстрое и бережное удаление пушковых и жестких волос на лице при помощи деликатного воска. Минимальное раздражение и гладкая кожа надолго.",
-            price: "от 300 ₽"
-        },
-
-    ];
-
     // 2. Имитация ответа API (JSON) для Галереи
     // Используем плейсхолдеры. В будущем заменишь на URL с сервера.
     const galleryData = [
@@ -57,84 +17,107 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ];
 
-    // 3. Рендер Прайс-листа (только для index.html)
-    const servicesContainer = document.getElementById('services-container');
-    if (servicesContainer) {
-        servicesData.forEach(service => {
-            const serviceEl = document.createElement('div');
-            serviceEl.classList.add('service-item');
-            serviceEl.innerHTML = `
-                <div class="service-main">
-                    <div class="service-info">
-                        <div class="service-name-row">
-                            <span class="service-name">${service.name}</span>
-                            <span class="service-arrow">▼</span>
+    // Функция для инициализации услуг (рендер прайса и чекбоксов)
+    async function initServices() {
+        let servicesData = [];
+        try {
+            const response = await fetch('/api/services');
+            if (response.ok) {
+                servicesData = await response.json();
+            } else {
+                console.error("Не удалось загрузить услуги со своего API");
+            }
+        } catch (error) {
+            console.error("Ошибка при запросе услуг:", error);
+        }
+
+        // 3. Рендер Прайс-листа (только для index.html)
+        const servicesContainer = document.getElementById('services-container');
+        if (servicesContainer) {
+            servicesContainer.innerHTML = ''; // Очистка перед рендером
+            servicesData.forEach(service => {
+                const serviceEl = document.createElement('div');
+                serviceEl.classList.add('service-item');
+                serviceEl.innerHTML = `
+                    <div class="service-main">
+                        <div class="service-info">
+                            <div class="service-name-row">
+                                <span class="service-name">${service.name}</span>
+                                <span class="service-arrow">▼</span>
+                            </div>
+                            <div class="service-desc">${service.description}</div>
                         </div>
-                        <div class="service-desc">${service.description}</div>
+                        <div class="service-price">${service.price}</div>
                     </div>
-                    <div class="service-price">${service.price}</div>
-                </div>
-                <div class="service-details">
-                    <div class="service-details-content">
-                        ${service.fullDescription}
+                    <div class="service-details">
+                        <div class="service-details-content">
+                            ${service.fullDescription}
+                        </div>
                     </div>
-                </div>
-            `;
-            
-            serviceEl.addEventListener('click', () => {
-                const isActive = serviceEl.classList.contains('active');
+                `;
                 
-                // Закрываем все остальные (если нужно)
-                // document.querySelectorAll('.service-item').forEach(el => el.classList.remove('active'));
+                serviceEl.addEventListener('click', () => {
+                    const isActive = serviceEl.classList.contains('active');
+                    if (!isActive) {
+                        serviceEl.classList.add('active');
+                    } else {
+                        serviceEl.classList.remove('active');
+                    }
+                });
                 
-                if (!isActive) {
-                    serviceEl.classList.add('active');
-                } else {
-                    serviceEl.classList.remove('active');
-                }
+                servicesContainer.appendChild(serviceEl);
             });
-            
-            servicesContainer.appendChild(serviceEl);
-        });
+        }
+
+        // --- Логика формы обратной связи ---
+        const feedbackForm = document.getElementById('feedback-form');
+        const checkboxesContainer = document.getElementById('services-checkboxes');
+        const totalPriceElement = document.getElementById('total-price');
+
+        if (feedbackForm && checkboxesContainer) {
+            checkboxesContainer.innerHTML = ''; // Очистка
+            // 1. Динамическое заполнение списка услуг чекбоксами
+            servicesData.forEach(service => {
+                const checkboxWrapper = document.createElement('div');
+                checkboxWrapper.classList.add('checkbox-item');
+                
+                // Извлекаем числовое значение цены для расчетов
+                const priceValue = parseInt(service.price.replace(/[^0-9]/g, '')) || 0;
+
+                checkboxWrapper.innerHTML = `
+                    <label class="custom-checkbox">
+                        <input type="checkbox" name="service" value="${service.name}" data-price="${priceValue}">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">${service.name} — ${service.price}</span>
+                    </label>
+                `;
+                checkboxesContainer.appendChild(checkboxWrapper);
+            });
+
+            // Функция обновления итоговой стоимости
+            const updateTotalPrice = () => {
+                let total = 0;
+                const checkedBoxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+                checkedBoxes.forEach(cb => {
+                    total += parseInt(cb.getAttribute('data-price'));
+                });
+                totalPriceElement.textContent = `${total} ₽`;
+            };
+
+            // Слушатель изменений на контейнере чекбоксов
+            checkboxesContainer.addEventListener('change', updateTotalPrice);
+        }
     }
 
-    // --- Логика формы обратной связи ---
+    // Запускаем инициализацию услуг
+    initServices();
+
+    // --- Логика формы обратной связи (отправка) ---
     const feedbackForm = document.getElementById('feedback-form');
     const checkboxesContainer = document.getElementById('services-checkboxes');
     const totalPriceElement = document.getElementById('total-price');
 
     if (feedbackForm && checkboxesContainer) {
-        // 1. Динамическое заполнение списка услуг чекбоксами
-        servicesData.forEach(service => {
-            const checkboxWrapper = document.createElement('div');
-            checkboxWrapper.classList.add('checkbox-item');
-            
-            // Извлекаем числовое значение цены для расчетов
-            const priceValue = parseInt(service.price.replace(/[^0-9]/g, '')) || 0;
-
-            checkboxWrapper.innerHTML = `
-                <label class="custom-checkbox">
-                    <input type="checkbox" name="service" value="${service.name}" data-price="${priceValue}">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-label">${service.name} — ${service.price}</span>
-                </label>
-            `;
-            checkboxesContainer.appendChild(checkboxWrapper);
-        });
-
-        // Функция обновления итоговой стоимости
-        const updateTotalPrice = () => {
-            let total = 0;
-            const checkedBoxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
-            checkedBoxes.forEach(cb => {
-                total += parseInt(cb.getAttribute('data-price'));
-            });
-            totalPriceElement.textContent = `${total} ₽`;
-        };
-
-        // Слушатель изменений на контейнере чекбоксов
-        checkboxesContainer.addEventListener('change', updateTotalPrice);
-
         // 2. Обработка отправки формы
         feedbackForm.addEventListener('submit', (e) => {
             e.preventDefault();
