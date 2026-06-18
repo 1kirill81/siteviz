@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  siteviz-app:
+    build: .
+    ports:
+      - "8000:8000"  # Наш первый сайт работает на порту 8000
+    env_file:
+      - .env
+    volumes:
+      - ./services.json:/app/services.json  # Связываем файл услуг на сервере с контейнером
+    restart: always
